@@ -101,8 +101,8 @@ namespace layout{
           srand(time(0));
           int i;
           for(i=0; i < nodes.size();i++){
-               nodes[i].x = rand()%width;
-               nodes[i].y = rand()%height;
+               nodes[i].x = rand() % width;
+               nodes[i].y = rand() % height;
           }
           init();
           return true;
@@ -238,6 +238,8 @@ namespace layout{
 
      bool loadNetFile(const string & filename)
      {
+          weight = 2000;
+          height = 2000;
           graph.clear();
           nodes.clear();
           ifstream in(filename.c_str());
@@ -258,7 +260,6 @@ namespace layout{
                nodes[index-1].info = line;
                nodes[index-1].rank = -1;
           }
-          cout << "001" << endl;
           graph = vector< map<int,double> >(size);
           in>>buffer;
           int v1,v2;
@@ -268,7 +269,9 @@ namespace layout{
                in>>v1>>v2>>value;
                graph[v1-1][v2-1] = value;
           }
+          cout << "001" << endl;
           initialLayout();
+          cout << "001" << endl;
           in.close();
           return true;
      }
