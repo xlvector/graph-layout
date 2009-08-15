@@ -1,0 +1,1 @@
+g++ -Dcimg_display=0 -o laygraph layout.cpp network.cpp
