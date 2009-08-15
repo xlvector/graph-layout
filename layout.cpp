@@ -280,4 +280,7 @@ namespace layout{
 };
 
 int main(int argc, char ** argv){
+     string src_file = argv[1];
+     layout::loadNetFile(src_file);
+     return 0;
 }
