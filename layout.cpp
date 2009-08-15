@@ -238,7 +238,7 @@ namespace layout{
 
      bool loadNetFile(const string & filename)
      {
-          weight = 2000;
+          width = 2000;
           height = 2000;
           graph.clear();
           nodes.clear();
