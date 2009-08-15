@@ -14,23 +14,23 @@ namespace layout{
           int x;
           int y;
           int n;
-          set<int> nodes;
+          set<int> ns;
      };
 
      class Node
      {
      public:
           Node(){}
-          Node(string & n, int x, int y, int w, int h)
-               :name(n),x(x),y(y),width(w),height(h),part(-1),rank(-1){}
+          Node(string & n, double xx, double yy)
+               :name(n),x(xx),y(yy),part(-1),rank(-1){}
           string name;
           string info;
-          int x,y;
-          int width,height;
+          double x,y;
           int part;
           int rank;
      };
 
+     typedef unsigned long uint64;
      typedef CImg<double> Image;
      
      int width;
@@ -42,6 +42,44 @@ namespace layout{
      vector< map<int,double> > graph;
      map< int, Group > grid;
 
+     bool toMapGraph(network::Graph & G)
+     {
+          int n = graph.size();
+          for(int i = 0; i < n; ++i){
+               for(map<int,double>::iterator j = graph[i].begin(); j != graph[i].end(); ++j){
+                    uint64 ii = i;
+                    uint64 jj = j->first;
+                    G[ii][jj] = j->second;
+               }
+          }
+          return true;
+     }
+
+     bool toVectorGraph(const network::Graph & G)
+     {
+          int n = G.size();
+          graph.clear();
+          graph = vector< map<int,double> >(n);
+          for(network::Graph::const_iterator i = G.begin(); i != G.end(); ++i){
+               for(network::OutEdge::const_iterator j = i->second.begin(); j != i->second.end(); ++j){
+                    int v1 = (int)(i->first);
+                    int v2 = (int)(j->first);
+                    graph[v1][v2] = j->second;
+               }
+          }
+          return true;
+     }
+
+     bool MST()
+     {
+          network::Graph G,T;
+          toMapGraph(G);
+          graph.clear();
+          network::primMST(G,T);
+          toVectorGraph(T);
+          return true;
+     }
+     /*
      int gridIndex(int x, int y)
      {
           if(x < -10000 || y < -10000) return 0;
@@ -56,22 +94,22 @@ namespace layout{
           for(int i=0; i < nodes.size();i++)
           {
                int k = gridIndex(nodes[i].x, nodes[i].y);
-               grid[k].nodes.insert(i);
+               grid[k].ns.insert(i);
                grid[k].x += nodes[i].x;
                grid[k].y += nodes[i].y;
           }
      }
-
+     */
      bool init()
      {
           double square = (double)(width*height);
           double vnum = (double)(nodes.size());
           posdis = 0.6 * sqrt(square/vnum);
           edgelen = posdis * 0.2;
-          resetGrid();
+          //resetGrid();
           return true;
      }
-
+     /*
      void gridPos(int i, int & x, int & y)
      {
           int a = i % 20000;
@@ -90,19 +128,19 @@ namespace layout{
                     int k = gridIndex((int)(xx), (int)(yy));
                     map<int, Group >::iterator p = grid.find(k);
                     if(p == grid.end()) continue;
-                    for(set<int>::iterator i = p->second.nodes.begin(); i != p->second.nodes.end(); ++i) gd.insert(*i);
+                    for(set<int>::iterator i = p->second.ns.begin(); i != p->second.ns.end(); ++i) gd.insert(*i);
                }
           }
      }
-
+     */
      
      bool initialLayout()
      {
           srand(time(0));
           int i;
           for(i=0; i < nodes.size();i++){
-               nodes[i].x = rand() % width;
-               nodes[i].y = rand() % height;
+               nodes[i].x = (double)(rand() % width) / 1000;
+               nodes[i].y = (double)(rand() % height) / 1000;
           }
           init();
           return true;
@@ -117,8 +155,8 @@ namespace layout{
      
      bool nextPosition(int i, int ss)
      {
-          int x = nodes[i].x;
-          int y = nodes[i].y;
+          double x = nodes[i].x;
+          double y = nodes[i].y;
           double dx,dy;
           dx = 0; dy = 0;
           for(map<int,double>::iterator p = graph[i].begin(); p != graph[i].end(); ++p)
@@ -156,11 +194,11 @@ namespace layout{
           nodes[i].y = y;
           return false;
      }
-     
+     /*
      bool nextPositionGrid(int i, int ss)
      {
-          int x = nodes[i].x;
-          int y = nodes[i].y;
+          double x = nodes[i].x;
+          double y = nodes[i].y;
           double dx,dy;
           dx = 0; dy = 0;
           for(map<int,double>::iterator p = graph[i].begin(); p != graph[i].end(); ++p)
@@ -181,14 +219,14 @@ namespace layout{
           
           for(map<int, Group >::iterator p = grid.begin(); p != grid.end(); ++p)
           {
-               if(p->second.nodes.empty()) continue;
+               if(p->second.ns.empty()) continue;
                int xxj,yyj;
                gridPos(p->first, xxj, yyj);
                double xj = xxj; double yj = yyj;
                double dis = (x-xj)*(x-xj) + (y-yj)*(y-yj);
                dis = (1 + dis) / (posdis * posdis);
-               double fx = (x - xj) * p->second.nodes.size();
-               double fy = (y - yj) * p->second.nodes.size();
+               double fx = (x - xj) * p->second.ns.size();
+               double fy = (y - yj) * p->second.ns.size();
                dx += fx / dis;
                dy += fy / dis;
           }
@@ -202,21 +240,19 @@ namespace layout{
           int k2 = gridIndex(nodes[i].x, nodes[i].y);
           if(k1 != k2){
                map<int,Group>::iterator pk1 = grid.find(k1);
-               pk1->second.nodes.erase(i);
-               grid[k2].nodes.insert(i);
-               if(pk1->second.nodes.empty())
+               pk1->second.ns.erase(i);
+               grid[k2].ns.insert(i);
+               if(pk1->second.ns.empty())
                     grid.erase(pk1);
           }
           return false;
      }
-     
+     */
      bool littleMove()
      {
-          for(unsigned int i=0; i < nodes.size();i++)
-          {
-               nodes[i].x += (rand()%100-50);
-               nodes[i].y += (rand()%100-50);
-          }
+          int i = rand() % nodes.size();
+          nodes[i].x += (double)(rand()%100-50);
+          nodes[i].y += (double)(rand()%100-50);
           return true;
      }
      
@@ -225,21 +261,24 @@ namespace layout{
           vector< pair<int,int> > vs;
           for(int i = 0; i < graph.size(); ++i) vs.push_back(make_pair<int,int>(i,graph[i].size()));
           sort(vs.begin(), vs.end(), network::GreaterSecond<int,int>);
-          for(int k=0;k<nn;k++)
+          for(int k = 0; k < nn; k++)
           {
+               if(k % 100 == 0) cout << "\n" << k << "\t";
+               if(k % 10 == 0) cout << ".";
+               cout.flush();
                for(int j=0;j<vs.size();j++)
                {
                     int i = vs[j].first;
-                    if(k < 50) nextPositionGrid(i,4);
-                    else nextPositionGrid(i,1);
+                    nextPosition(i,4);
+                    //if(rand() % 5 == 0 && k < nn - 30) littleMove();
                }
           }
      }
 
      bool loadNetFile(const string & filename)
      {
-          width = 2000;
-          height = 2000;
+          width = 8000;
+          height = 8000;
           graph.clear();
           nodes.clear();
           ifstream in(filename.c_str());
@@ -268,17 +307,54 @@ namespace layout{
           {
                in>>v1>>v2>>value;
                graph[v1-1][v2-1] = value;
+               graph[v2-1][v1-1] = value;
           }
-          cout << "001" << endl;
           initialLayout();
-          cout << "001" << endl;
           in.close();
+
+          MST();
+          cout << "load file [" << filename << "] ok!" << endl;
           return true;
      }
 
      bool savePNGImg(const string & filename)
      {
-          Image img(5000, 5000, 1, 3);
+          double xmax = -1000000;
+          double xmin = 1000000;
+          double ymax = -1000000;
+          double ymin = 1000000;
+          for(int i = 0; i < nodes.size(); ++i){
+               xmax = max<double>(xmax, nodes[i].x);
+               xmin = min<double>(xmin, nodes[i].x);
+               ymax = max<double>(ymax, nodes[i].y);
+               ymin = min<double>(ymin, nodes[i].y);
+          }
+          for(int i = 0; i < nodes.size(); ++i){
+               nodes[i].x = 100 + (double)(width - 200) * (nodes[i].x - xmin) / max<double>(xmax - xmin, ymax - ymin);
+               nodes[i].y = 100 + (double)(height - 200) * (nodes[i].y - ymin) / max<double>(xmax - xmin, ymax - ymin);
+          }
+          Image img(width, height, 1, 3);
+          double red_color[3] = {255,0,0};
+          double green_color[3] = {0,255,0};
+          double black_color[3] = {0,0,0};
+          for(int i = 0; i < nodes.size(); ++i){
+               img.draw_circle((int)(nodes[i].x), (int)(nodes[i].y), 2, red_color);
+          }
+
+          for(int i = 0; i < graph.size(); ++i){
+               for(map<int,double>::iterator j = graph[i].begin(); j != graph[i].end(); ++j){
+                    int x1 = (int)(nodes[i].x);
+                    int y1 = (int)(nodes[i].y);
+                    int x2 = (int)(nodes[j->first].x);
+                    int y2 = (int)(nodes[j->first].y);
+                    double color[3] = {200 * sqrt(j->second) + 55,200 * sqrt(j->second) + 55,0};
+                    img.draw_line(x1, y1, x2, y2, color);
+               }
+          }
+
+          for(int i = 0; i < nodes.size(); ++i){
+               img.draw_text((int)(nodes[i].x + 5), (int)(nodes[i].y), nodes[i].name.c_str(), green_color, black_color);
+          }
           img.save(filename.c_str());
           return true;
      }
@@ -286,6 +362,10 @@ namespace layout{
 
 int main(int argc, char ** argv){
      string src_file = argv[1];
+     string out_file = "out.png";
      layout::loadNetFile(src_file);
+     layout::layout(1000);
+     layout::savePNGImg(out_file);
+     cout << endl;
      return 0;
 }
