@@ -1091,7 +1091,7 @@ double powMean(double x1, double x2, double p){
 			visited.insert(e.v2);
 			T[e.v1][e.v2] = e.wt;
 			T[e.v2][e.v1] = e.wt;
-			p = G.find(e.v2);
+            p = G.find(e.v2);
 			for(OutEdge::const_iterator i = p->second.begin(); i != p->second.end(); ++i){
 				Edge ee(p->first,i->first,i->second);
 				//if(visited.find(p->first) != visited.end()) continue;

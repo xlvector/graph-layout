@@ -168,8 +168,8 @@ namespace layout{
                double dis = (1 + distance2(i,j)) / (posdis*posdis);
                double fx = (x - xj);
                double fy = (y - yj);
-               dx -= fx * dis;
-               dy -= fy * dis;
+               dx -= fx * dis * (1 + p->second) * 10;
+               dy -= fy * dis * (1 + p->second) * 10;
           }
           for(int j = 0; j < graph.size(); ++j)
           {
@@ -277,8 +277,8 @@ namespace layout{
 
      bool loadNetFile(const string & filename)
      {
-          width = 8000;
-          height = 8000;
+          width = 6000;
+          height = 6000;
           graph.clear();
           nodes.clear();
           ifstream in(filename.c_str());
@@ -353,7 +353,7 @@ namespace layout{
           }
 
           for(int i = 0; i < nodes.size(); ++i){
-               img.draw_text((int)(nodes[i].x + 5), (int)(nodes[i].y), nodes[i].name.c_str(), green_color, black_color);
+               img.draw_text((int)(nodes[i].x + 5), (int)(nodes[i].y), nodes[i].name.c_str(), green_color, NULL);
           }
           img.save(filename.c_str());
           return true;
@@ -362,7 +362,7 @@ namespace layout{
 
 int main(int argc, char ** argv){
      string src_file = argv[1];
-     string out_file = "out.png";
+     string out_file = src_file + ".png";
      layout::loadNetFile(src_file);
      layout::layout(1000);
      layout::savePNGImg(out_file);
