@@ -246,8 +246,9 @@ namespace layout{
           int size,index;
           in>>buffer>>size;
           nodes = vector<Node>(size);
-          string line; getline(in,line);
-          for(int i=0;i<size;i++){
+          string line;
+          getline(in,line);
+          for(int i = 0; i < size; i++){
                getline(in,line);
                istringstream iss(line);
                iss >> index >> buffer;
@@ -257,6 +258,7 @@ namespace layout{
                nodes[index-1].info = line;
                nodes[index-1].rank = -1;
           }
+          cout << "001" << endl;
           graph = vector< map<int,double> >(size);
           in>>buffer;
           int v1,v2;
